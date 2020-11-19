@@ -8,7 +8,22 @@
 
 import Foundation
 
-import Foundation
+private func update(_ value: Any, forKey key: String, inDictionary dictionary: inout [String : Any]) {
+    guard let oldValue = dictionary[key] else {
+        dictionary[key] = value
+        return
+    }
+    var newArray: Array<Any> = {
+        if let array = oldValue as? Array<Any> {
+            return array
+        }
+        var newArray: Array<Any> = .init()
+        newArray.append(oldValue)
+        return newArray
+    }()
+    newArray.append(value)
+    dictionary[key] = newArray
+}
 
 private func setValue(_ value: Any, map: XMLMap) {
     setValue(value, key: map.currentKey!, checkForNestedKeys: map.keyIsNested, delimiter: map.nestedKeyDelimiter, dictionary: &map.XML)
@@ -19,7 +34,7 @@ private func setValue(_ value: Any, key: String, checkForNestedKeys: Bool, delim
         let keyComponents = ArraySlice(key.components(separatedBy: delimiter).filter { !$0.isEmpty })
         setValue(value, forKeyPathComponents: keyComponents, dictionary: &dictionary)
     } else {
-        dictionary[key] = value
+        update(value, forKey: key, inDictionary: &dictionary)
     }
 }
 
@@ -29,14 +44,14 @@ private func setValue(_ value: Any, forKeyPathComponents components: ArraySlice<
     }
     
     if components.count == 1 {
-        dictionary[head] = value
+        update(value, forKey: head, inDictionary: &dictionary)
     } else {
         var child = dictionary[head] as? [String : Any] ?? [:]
         
         let tail = components.dropFirst()
         setValue(value, forKeyPathComponents: tail, dictionary: &child)
         
-        dictionary[head] = child
+        update(child, forKey: head, inDictionary: &dictionary)
     }
 }
 
