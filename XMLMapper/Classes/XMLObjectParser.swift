@@ -57,6 +57,7 @@ class XMLObjectParser: NSObject {
         let xmlObjectParser = XMLObjectParser()
         xmlObjectParser.applyOptions(options)
         let parser = XMLParser(data: data)
+        parser.shouldProcessNamespaces = true
         parser.delegate = xmlObjectParser
         parser.parse()
         if let parseError = xmlObjectParser.error {
